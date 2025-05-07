@@ -1,0 +1,93 @@
+// main.tsx
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App";
+import "./index.css";
+
+ReactDOM.createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+
+
+// App.tsx
+import { TicketProvider } from "./context/TicketContext";
+import Dashboard from "./pages/Dashboard";
+
+function App() {
+  return (
+    <TicketProvider>
+      <Dashboard />
+    </TicketProvider>
+  );
+}
+
+export default App;
+
+
+// context/TicketContext.tsx
+import React, { createContext, useContext, useEffect, useState } from "react";
+import ticketsData from "../data/tickets.json";
+
+export type Ticket = {
+  id: string;
+  title: string;
+  customer: string;
+  customerEmail: string;
+  priority: "High" | "Medium" | "Low";
+  status: "Open" | "In Progress" | "Resolved";
+  createdAt: string;
+  updatedAt: string;
+  description: string;
+  category: string;
+};
+
+type ContextType = {
+  tickets: Ticket[];
+  setTickets: React.Dispatch<React.SetStateAction<Ticket[]>>;
+};
+
+const TicketContext = createContext<ContextType | undefined>(undefined);
+
+export const TicketProvider = ({ children }: { children: React.ReactNode }) => {
+  const [tickets, setTickets] = useState<Ticket[]>([]);
+
+  useEffect(() => {
+    setTickets(ticketsData);
+  }, []);
+
+  return (
+    <TicketContext.Provider value={{ tickets, setTickets }}>
+      {children}
+    </TicketContext.Provider>
+  );
+};
+
+export const useTicketContext = () => {
+  const context = useContext(TicketContext);
+  if (!context) throw new Error("useTicketContext must be used inside TicketProvider");
+  return context;
+};
+
+
+// pages/Dashboard.tsx
+import TicketList from "../components/TicketList";
+import FilterPanel from "../components/FilterPanel";
+import SearchBar from "../components/SearchBar";
+
+const Dashboard = () => {
+  return (
+    <div className="p-4 grid gap-4 grid-cols-1 md:grid-cols-4">
+      <div className="md:col-span-1">
+        <SearchBar />
+        <FilterPanel />
+      </div>
+      <div className="md:col-span-3">
+        <TicketList />
+      </div>
+    </div>
+  );
+};
+
+export default Dashboard;
